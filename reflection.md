@@ -27,7 +27,7 @@ The Attempts counter is initialized at 1 instead of 0 at the start of the game.
 As a result, the Attempts left value is always one less than expected, and the game ends and displays the result one attempt earlier than it should.
 Expected behavior: The Attempts counter should start at 0 when the game begins.
 
-4) 4. Secret number may be generated outside the selected range.
+4) Secret number may be generated outside the selected range.
 The secret number is sometimes generated outside the selected difficulty range.
 For example, when selecting a difficulty with Range 1–20 or Range 1–50, the secret number is still sometimes generated from 1–100.
 Expected behavior: The secret number should be generated within the selected range for the chosen difficulty level.
