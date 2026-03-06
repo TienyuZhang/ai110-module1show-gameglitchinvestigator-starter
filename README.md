@@ -26,12 +26,42 @@ It wrote the code, ran away, and now the game is unplayable.
 ## 📝 Document Your Experience
 
 - [ ] Describe the game's purpose.
+
+
 - [ ] Detail which bugs you found.
+I mainly found the following four bugs
+1) Difficulty settings for “Hard” and “Normal” are reversed. 
+The difficulty configuration for Hard and Normal appears to be incorrect. Currently, Normal is more difficult than Hard:
+Normal: Range 1–100, Attempts allowed: 8
+Hard: Range 1–50, Attempts allowed: 5
+Because the range for Normal is larger, it is actually harder than Hard.
+
+2) The hints were backwards. 
+The hint messages appear to be displayed incorrectly.
+When the guessed number is lower than the secret number, the game should display “Go higher”, but it currently shows “Go LOWER.”
+When the guessed number is higher than the secret number, the game should display “Go lower”, but it currently shows “Go HIGHER.”
+The hint logic appears to be reversed.
+
+3) Attempt counter starts with the wrong value.
+The Attempts counter is initialized at 1 instead of 0 at the start of the game.
+As a result, the Attempts left value is always one less than expected, and the game ends and displays the result one attempt earlier than it should.
+
+4) Secret number may be generated outside the selected range.
+The secret number is sometimes generated outside the selected difficulty range.
+For example, when selecting a difficulty with Range 1–20 or Range 1–50, the secret number is still sometimes generated from 1–100.
+
+
 - [ ] Explain what fixes you applied.
+With the help of Claude Code, I: 
+1) Swaped the range settings so that Hard uses 1–100 and Normal uses 1–50.
+2) Swaped the hits of “Go LOWER” and “Go HIGHER”.
+3) Set the initial Attempts counter at 0 when the game begins.
+4) Generated the secret number within the selected range for the chosen difficulty level.
 
 ## 📸 Demo
 
 - [ ] [Insert a screenshot of your fixed, winning game here]
+![App Screenshot](images/screenshot.png)
 
 ## 🚀 Stretch Features
 
