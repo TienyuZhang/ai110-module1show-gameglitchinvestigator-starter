@@ -39,6 +39,12 @@ Expected behavior: The secret number should be generated within the selected ran
 - Give one example of an AI suggestion that was incorrect or misleading (including what the AI suggested and how you verified the result).
 
 ---
+I used Claude Code.
+
+Claude successfully refactored logic into logic_utils.py. It correctly identified the logic functions in app.py, moved them into logic_utils.py, removed the original definitions from app.py, and added the necessary import statements. I verified the result by checking both logic_utils.py and app.py to confirm that all logic functions were moved correctly. I also ran the application to ensure the logic functions still worked as expected.
+
+When I asked the AI to add tests for the fixed bug related to the Attempt counter, it used score differences to check whether the Attempt counter was working correctly. This approach was incorrect because it could not directly verify the initial value of the Attempt counter or monitor whether the Attempt counter was updated correctly during gameplay. After I clarified the type of tests I needed, the AI eventually generated tests that directly validated the Attempt counter’s initialization and updates during the game.
+
 
 ## 3. Debugging and testing your fixes
 
@@ -48,6 +54,14 @@ Expected behavior: The secret number should be generated within the selected ran
 - Did AI help you design or understand any tests? How?
 
 ---
+To determine whether a bug was fixed, I checked whether the program behaved correctly in situations where the bug previously occurred. I reviewed the relevant code changes and then ran the application to verify that the feature now worked as expected without introducing new issues.
+
+One test I ran about the hit message:
+When the guess number is above secret number — player should be told to go LOWER, so I assert "Go LOWER" in message,and  "Go HIGHER" not in message;
+When Guess number is below secret number — player should be told to go HIGHER, so I assert "Go  HIGHER" in message,and  "Go LOWER" not in message.
+
+AI helped me generate test cases using pytest. It suggested test structures and helped write the basic test functions. Although sometimes the first version of the test was incorrect, it still helped me understand how to structure tests. 
+
 
 ## 4. What did you learn about Streamlit and state?
 
@@ -56,6 +70,21 @@ Expected behavior: The secret number should be generated within the selected ran
 - What change did you make that finally gave the game a stable secret number?
 
 ---
+Streamlit reruns the entire script from top to bottom on every user interaction — every button click, every selectbox change, every keystroke in a text input. This means random.randint() would be called again on every single interaction.
+There are two scenarios in the original app will change the secret number:
+1) Page refresh — refreshing the browser clears st.session_state entirely, so a brand new secret is generated. This is expected behavior.
+2) The "New Game" button bug — the new_game handler explicitly called random.randint(1, 100) (the hardcoded range bug we fixed). But it also didn't reset st.session_state.status back to "playing", so after winning/losing, clicking "New Game" generated a new secret but then st.stop() immediately halted the script due to the old "won"/"lost" status — effectively trapping the player and silently changing the secret with no way to play.
+
+
+Imagine a whiteboard that gets erased and redrawn every time someone in the room raises their hand.
+That's Streamlit. Every time a user interacts with anything — clicks a button, types in a box, changes a dropdown — Streamlit erases everything and reruns the entire Python script from line 1. The screen you see is always the result of the most recent full run.
+This means any regular variable like secret = random.randint(1, 20) gets thrown away and recalculated every single rerun. The number would change constantly. st.session_state is a sticky notepad on the side of the whiteboard — it survives the erase. Values stored there persist across reruns for as long as the browser tab is open.
+
+Two changes together fixed it:
+1) The if "secret" not in st.session_state guard — ensures the secret is only generated once per session.
+2) Fixing the "New Game" button — the original hardcoded random.randint(1, 100) was replaced with random.randint(low, high), so when a new game intentionally starts, the secret is at least generated within the correct difficulty range.
+Without 1), the secret would change on every interaction. Without 2), the secret would be stable but potentially outside the selected difficulty's range.
+
 
 ## 5. Looking ahead: your developer habits
 
@@ -63,3 +92,9 @@ Expected behavior: The secret number should be generated within the selected ran
   - This could be a testing habit, a prompting strategy, or a way you used Git.
 - What is one thing you would do differently next time you work with AI on a coding task?
 - In one or two sentences, describe how this project changed the way you think about AI generated code.
+
+One habit I want to keep is committing changes to Git frequently. Whenever I complete a small feature or make several important changes, I create a commit to save my progress. This helps me keep track of what I changed and makes it easier to revert to a previous version if something breaks. It also makes the development process more organized and safer.
+
+Next time, I would review my code more carefully before asking AI for help. Sometimes I asked AI too quickly without fully understanding the problem myself. If I first analyze the code and identify the exact issue, I can give AI a clearer prompt and get more useful suggestions.
+
+This project showed me that AI is a powerful tool that can help solve many coding problems when given clear instructions. However, AI can still make mistakes, even when the request is clear. Because of this, developers must carefully review AI-generated code and make the final decisions themselves. AI should be treated as a helpful assistant, not as the person responsible for the project.
