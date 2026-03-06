@@ -75,7 +75,6 @@ There are two scenarios in the original app will change the secret number:
 1) Page refresh — refreshing the browser clears st.session_state entirely, so a brand new secret is generated. This is expected behavior.
 2) The "New Game" button bug — the new_game handler explicitly called random.randint(1, 100) (the hardcoded range bug we fixed). But it also didn't reset st.session_state.status back to "playing", so after winning/losing, clicking "New Game" generated a new secret but then st.stop() immediately halted the script due to the old "won"/"lost" status — effectively trapping the player and silently changing the secret with no way to play.
 
-
 Imagine a whiteboard that gets erased and redrawn every time someone in the room raises their hand.
 That's Streamlit. Every time a user interacts with anything — clicks a button, types in a box, changes a dropdown — Streamlit erases everything and reruns the entire Python script from line 1. The screen you see is always the result of the most recent full run.
 This means any regular variable like secret = random.randint(1, 20) gets thrown away and recalculated every single rerun. The number would change constantly. st.session_state is a sticky notepad on the side of the whiteboard — it survives the erase. Values stored there persist across reruns for as long as the browser tab is open.
