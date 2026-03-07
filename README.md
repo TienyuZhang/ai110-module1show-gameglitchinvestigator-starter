@@ -26,10 +26,13 @@ It wrote the code, ran away, and now the game is unplayable.
 ## 📝 Document Your Experience
 
 - [ ] Describe the game's purpose.
+Glitchy Guesser is a number guessing game where the player tries to identify a randomly chosen secret number within a limited number of attempts. After each guess, the game gives directional feedback ("Too High" / "Too Low") along with a Hot/Cold proximity indicator showing how close the guess was. The player earns points for winning, with fewer attempts yielding a higher score.
+
+The twist — reflected in the name "Game Glitch Investigator" — is that the original AI-generated code contained intentional bugs (like wrong difficulty ranges, broken score resets, and incorrect type comparisons) for players or developers to find and fix.
 
 
 - [ ] Detail which bugs you found.
-I mainly found the following four bugs
+I mainly found the following five bugs
 1) Difficulty settings for “Hard” and “Normal” are reversed. 
 The difficulty configuration for Hard and Normal appears to be incorrect. Currently, Normal is more difficult than Hard:
 Normal: Range 1–100, Attempts allowed: 8
@@ -50,6 +53,8 @@ As a result, the Attempts left value is always one less than expected, and the g
 The secret number is sometimes generated outside the selected difficulty range.
 For example, when selecting a difficulty with Range 1–20 or Range 1–50, the secret number is still sometimes generated from 1–100.
 
+5) The result of the comparison between the guess number and the secrect number are wrong sometimes.
+The bug was in app.py: On even-numbered attempts, secret is cast to a str. Then in check_guess, comparing int > str raises a TypeError, which falls into the except block that does string comparison — so "12" > "5" is False lexicographically (because "1" < "5"), returning "Too Low" even though 12 > 5. 
 
 - [ ] Explain what fixes you applied.
 With the help of Claude Code, I: 
@@ -57,6 +62,7 @@ With the help of Claude Code, I:
 2) Swaped the hits of “Go LOWER” and “Go HIGHER”.
 3) Set the initial Attempts counter at 0 when the game begins.
 4) Generated the secret number within the selected range for the chosen difficulty level.
+5) Always pass secret as an int, so check_guess always does a numeric > / < comparison.
 
 ## 📸 Demo
 
@@ -66,3 +72,4 @@ With the help of Claude Code, I:
 ## 🚀 Stretch Features
 
 - [ ] [If you choose to complete Challenge 4, insert a screenshot of your Enhanced Game UI here]
+![Enhanced UI Screenshot](images/screenshot-enhancedUI.png)

@@ -43,7 +43,7 @@ if "status" not in st.session_state:
     st.session_state.status = "playing"
 
 if "history" not in st.session_state:
-    st.session_state.history = []
+    st.session_state.history = []  # each entry: {"attempt", "guess", "outcome", "temp"}
 
 st.subheader("Make a guess")
 
@@ -97,20 +97,42 @@ if submit:
     ok, guess_int, err = parse_guess(raw_guess)
 
     if not ok:
-        st.session_state.history.append(raw_guess)
+        st.session_state.history.append({"attempt": st.session_state.attempts, "guess": raw_guess, "outcome": "Invalid", "temp": ""})
         st.error(err)
     else:
-        st.session_state.history.append(guess_int)
-
-        if st.session_state.attempts % 2 == 0:
-            secret = str(st.session_state.secret)
-        else:
-            secret = st.session_state.secret
+        # FIX: Always pass secret as int so check_guess uses numeric comparison.
+        # Bug was here: secret was cast to str on even attempts, causing
+        # check_guess to fall back to lexicographic string comparison
+        # (e.g. "12" < "5"), which produced wrong Too High / Too Low results.
+        secret = st.session_state.secret
 
         outcome, message = check_guess(guess_int, secret)
 
+        # Hot/Cold proximity indicator
+        distance = abs(guess_int - st.session_state.secret)
+        range_size = high - low
+        proximity = distance / range_size if range_size > 0 else 1.0
+        if proximity < 0.05:
+            temp_label = "🔥🔥 Scorching!"
+        elif proximity < 0.15:
+            temp_label = "🔥 Hot!"
+        elif proximity < 0.30:
+            temp_label = "😐 Warm"
+        elif proximity < 0.55:
+            temp_label = "❄️ Cold"
+        else:
+            temp_label = "❄️❄️ Freezing!"
+
+        st.session_state.history.append({"attempt": st.session_state.attempts, "guess": guess_int, "outcome": outcome, "temp": temp_label})
+
         if show_hint:
-            st.warning(message)
+            hint_text = f"{message} &nbsp; {temp_label}"
+            if outcome == "Too High":
+                st.error(hint_text)
+            elif outcome == "Too Low":
+                st.info(hint_text)
+            elif outcome == "Win":
+                st.success(hint_text)
 
         st.session_state.score = update_score(
             current_score=st.session_state.score,
@@ -135,4 +157,17 @@ if submit:
                 )
 
 st.divider()
+
+# Session summary table
+valid_history = [h for h in st.session_state.history if h.get("outcome") != "Invalid"]
+if valid_history:
+    st.subheader("Session Summary")
+    st.caption("Hot/Cold shows how close your guess was to the secret: 🔥🔥 Scorching (≤5%) → 🔥 Hot (≤15%) → 😐 Warm (≤30%) → ❄️ Cold (≤55%) → ❄️❄️ Freezing (>55%) of the number range.")
+    import pandas as pd
+    st.table(pd.DataFrame([
+        {"#": h["attempt"], "Guess": h["guess"], "Result": h["outcome"], "Hot/Cold": h["temp"]}
+        for h in valid_history
+    ]))
+    st.caption(f"Current score: **{st.session_state.score}**")
+
 st.caption("Built by an AI that claims this code is production-ready.")

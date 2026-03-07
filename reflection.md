@@ -32,6 +32,10 @@ The secret number is sometimes generated outside the selected difficulty range.
 For example, when selecting a difficulty with Range 1–20 or Range 1–50, the secret number is still sometimes generated from 1–100.
 Expected behavior: The secret number should be generated within the selected range for the chosen difficulty level.
 
+5) The result of the comparasion between the guess number and the secrect number are wrong sometimes.
+The bug was in app.py: On even-numbered attempts, secret is cast to a str. Then in check_guess, comparing int > str raises a TypeError, which falls into the except block that does string comparison — so "12" > "5" is False lexicographically (because "1" < "5"), returning "Too Low" even though 12 > 5. 
+Expected behavior: Always pass secret as int so check_guess uses numeric comparison.
+
 ## 2. How did you use AI as a teammate?
 
 - Which AI tools did you use on this project (for example: ChatGPT, Gemini, Copilot)?
